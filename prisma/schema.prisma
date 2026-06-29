@@ -1,0 +1,101 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ninios    Ninio[]  @relation("UserNinios")
+}
+
+model Ninio {
+  id          String   @id @default(uuid())
+  fullName    String
+  weight      Float
+  height      Float
+  age         Int
+  diagnostico String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  trackers    Tracker[]
+  crisis      Crisis[]
+  userId      String?
+  user        User?        @relation("UserNinios", fields: [userId], references: [id], onDelete: Cascade)
+  medications Medicacion[]
+}
+
+model Medicacion {
+  id        String   @id @default(uuid())
+  ninioId   String
+  ninio     Ninio    @relation(fields: [ninioId], references: [id], onDelete: Cascade)
+  name      String
+  dose      String  
+  horarios  String
+  dias      Int[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Tracker {
+  id        String   @id @default(uuid())
+  ninioId   String
+  ninio     Ninio    @relation(fields: [ninioId], references: [id], onDelete: Cascade)
+  date      String   
+
+  sleep        Float    
+  wakeUps      Int      
+  sleepQuality String   
+  moods        String[] 
+  energy       String   
+
+  hasCrisis    Boolean
+  crisisTypes  String[] 
+  otherType    String?
+  startTime    String?  
+  durationHrs  Int?
+  durationMin  Int?
+  durationSec  Int?
+  triggers     String?  
+
+  feedQuality   String   
+  hasRejection  Boolean
+  rejectedMeals String[] 
+  mealNote      String?
+  bowelCount    Int      
+  bristolTypes  String[] 
+
+  tookAllMeds   Boolean
+  missedMedIds  String[] 
+  doseAltered   Boolean
+  alteredMedId  String?  
+  actualDose    String?  
+  hadTherapy    Boolean
+  therapyDetail String?  
+  attention     String   
+
+  achievements     String?  
+  hasBehaviorIssue Boolean
+  behaviorDetail   String?  
+  regulation       String?  
+  notes            String?
+
+  @@unique([ninioId, date])
+}
+
+model Crisis {
+  id          String   @id @default(uuid())
+  ninioId     String
+  ninio       Ninio    @relation(fields: [ninioId], references: [id], onDelete: Cascade)
+  startTime   String   
+  endTime     String   
+  durationSec Int?
+}
