@@ -1,5 +1,4 @@
 import "dotenv/config";
-import serverless from "serverless-http";
 import app from "../src/app";
 
-export default serverless(app);
+export default app;
