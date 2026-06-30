@@ -5,28 +5,29 @@ import { errorHandler } from "./middlewares/errorHandler";
 
 const app = express();
 
-const allowedOrigins = new Set([
-	"http://localhost:3000",
-	"https://proyecto-epof.vercel.app",
-	process.env.FRONTEND_URL,
-].filter((value): value is string => Boolean(value)));
+const corsOptions: cors.CorsOptions = {
+	origin(origin, callback) {
+		if (!origin) {
+			callback(null, true);
+			return;
+		}
 
-app.use((req, res, next) => {
-	const origin = req.headers.origin;
-	if (origin && allowedOrigins.has(origin)) {
-		res.setHeader("Access-Control-Allow-Origin", origin);
-		res.setHeader("Access-Control-Allow-Credentials", "true");
-		res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
-		res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization");
-	}
+		const isAllowed = [
+			"http://localhost:3000",
+			"https://proyecto-epof.vercel.app",
+			process.env.FRONTEND_URL,
+		]
+			.filter((value): value is string => Boolean(value))
+			.includes(origin);
 
-	if (req.method === "OPTIONS") {
-		res.sendStatus(200);
-		return;
-	}
+		callback(null, isAllowed);
+	},
+	methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+	allowedHeaders: ["Content-Type", "Authorization"],
+	optionsSuccessStatus: 200,
+};
 
-	next();
-});
+app.use(cors(corsOptions));
 app.use(express.json());
 
 app.use("/api", routes);
