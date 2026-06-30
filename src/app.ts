@@ -14,6 +14,7 @@ const corsOptions: cors.CorsOptions = {
 
 		const isAllowed = [
 			"http://localhost:3000",
+			"https://proyecto-epof.vercel.app",
 			process.env.FRONTEND_URL,
 		]
 			.filter((value): value is string => Boolean(value))
