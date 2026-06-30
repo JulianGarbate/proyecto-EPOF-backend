@@ -5,36 +5,13 @@ import { errorHandler } from "./middlewares/errorHandler";
 
 const app = express();
 
-const corsOptions: cors.CorsOptions = {
-	origin(origin, callback) {
-		if (!origin) {
-			callback(null, true);
-			return;
-		}
+const allowedOrigins = new Set([
+	"http://localhost:3000",
+	"https://proyecto-epof.vercel.app",
+	process.env.FRONTEND_URL,
+].filter((value): value is string => Boolean(value)));
 
-		const isAllowed = [
-			"http://localhost:3000",
-			"https://proyecto-epof.vercel.app",
-			process.env.FRONTEND_URL,
-		]
-			.filter((value): value is string => Boolean(value))
-			.includes(origin);
-
-		callback(null, isAllowed);
-	},
-	methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-	allowedHeaders: ["Content-Type", "Authorization"],
-	optionsSuccessStatus: 200,
-};
-
-app.use(cors(corsOptions));
 app.use((req, res, next) => {
-	const allowedOrigins = new Set([
-		"http://localhost:3000",
-		"https://proyecto-epof.vercel.app",
-		process.env.FRONTEND_URL,
-	].filter((value): value is string => Boolean(value)));
-
 	const origin = req.headers.origin;
 	if (origin && allowedOrigins.has(origin)) {
 		res.setHeader("Access-Control-Allow-Origin", origin);
