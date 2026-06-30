@@ -44,7 +44,8 @@ export async function createRecord(req: AuthRequest, res: Response) {
   const dateStr: string = date ?? new Date().toISOString().split("T")[0];
 
   // Upsert: si ya existe para esa fecha lo actualiza
-  const record = await prisma.tracker.upsert({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const record = await (prisma.tracker.upsert as any)({
     where: { ninioId_date: { ninioId, date: dateStr } },
     create: { ninioId, date: dateStr, ...sanitize(rest) },
     update: { ...sanitize(rest) },
@@ -52,16 +53,47 @@ export async function createRecord(req: AuthRequest, res: Response) {
   res.status(201).json({ record });
 }
 
+// GET /api/records/:id  — registro individual por id
+export async function getRecordById(req: AuthRequest, res: Response) {
+  const record = await prisma.tracker.findUnique({ where: { id: req.params.id as string } });
+  if (!record) { res.status(404).json({ error: "Registro no encontrado" }); return; }
+
+  const ninio = await ownedNinio(record.ninioId, req.userId!);
+  if (!ninio) { res.status(403).json({ error: "Sin permiso" }); return; }
+
+  res.json({ record });
+}
+
+// GET /api/records/alterations?patientId=&medId=
+// Todos los registros históricos donde se alteró esa medicación específica
+export async function getAlterations(req: AuthRequest, res: Response) {
+  const { patientId, medId } = req.query as Record<string, string>;
+  if (!patientId || !medId) {
+    res.status(400).json({ error: "patientId y medId son requeridos" });
+    return;
+  }
+
+  const ninio = await ownedNinio(patientId, req.userId!);
+  if (!ninio) { res.status(404).json({ error: "Paciente no encontrado" }); return; }
+
+  const records = await prisma.tracker.findMany({
+    where: { ninioId: patientId, doseAltered: true, alteredMedId: medId },
+    orderBy: { date: "desc" },
+  });
+  res.json({ records });
+}
+
 // PUT /api/records/:id
 export async function updateRecord(req: AuthRequest, res: Response) {
-  const record = await prisma.tracker.findUnique({ where: { id: req.params.id } });
+  const id = req.params.id as string;
+  const record = await prisma.tracker.findUnique({ where: { id } });
   if (!record) { res.status(404).json({ error: "Registro no encontrado" }); return; }
 
   const ninio = await ownedNinio(record.ninioId, req.userId!);
   if (!ninio) { res.status(403).json({ error: "Sin permiso" }); return; }
 
   const updated = await prisma.tracker.update({
-    where: { id: req.params.id },
+    where: { id },
     data: sanitize(req.body),
   });
   res.json({ record: updated });

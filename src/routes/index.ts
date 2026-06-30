@@ -4,6 +4,7 @@ import niniosRouter  from "./ninios";
 import patientsRouter from "./patients";
 import recordsRouter from "./records";
 import crisisRouter  from "./crisis";
+import shareRouter   from "./share";
 
 const router = Router();
 
@@ -14,5 +15,6 @@ router.use("/ninios",   niniosRouter);
 router.use("/patients", patientsRouter);
 router.use("/records",  recordsRouter);
 router.use("/crisis",   crisisRouter);
+router.use("/share",    shareRouter);
 
 export default router;

@@ -22,7 +22,7 @@ export async function startCrisis(req: AuthRequest, res: Response) {
 
 // PUT /api/crisis/:id/end — finaliza la crisis y calcula duración
 export async function endCrisis(req: AuthRequest, res: Response) {
-  const existing = await prisma.crisis.findUnique({ where: { id: req.params.id } });
+  const existing = await prisma.crisis.findUnique({ where: { id: req.params.id as string } });
   if (!existing) { res.status(404).json({ error: "Crisis no encontrada" }); return; }
 
   const ninio = await ownedNinio(existing.ninioId, req.userId!);
@@ -34,7 +34,7 @@ export async function endCrisis(req: AuthRequest, res: Response) {
   );
 
   const crisis = await prisma.crisis.update({
-    where: { id: req.params.id },
+    where: { id: req.params.id as string },
     data: { endTime, durationSec },
   });
   res.json({ crisis });

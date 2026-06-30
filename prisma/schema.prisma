@@ -23,26 +23,37 @@ model Ninio {
   weight      Float
   height      Float
   age         Int
-  diagnostico String
+  diagnosticos String[]
+  // Protocolo de crisis
+  rescueMed        String?   // Medicamento de rescate
+  rescueDose       String?   // Dosis de rescate
+  alertMinutes     Int?      // Minutos para avisar al médico
+  ambulanceMinutes Int?      // Minutos para llamar ambulancia
+  emergencyPhone   String?   // Teléfono de emergencia
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   trackers    Tracker[]
   crisis      Crisis[]
   userId      String?
   user        User?        @relation("UserNinios", fields: [userId], references: [id], onDelete: Cascade)
-  medications Medicacion[]
+  medications  Medicacion[]
+  consultas    Consulta[]
+  shareToken   String?  @unique  // Token para vista pública del médico
 }
 
 model Medicacion {
   id        String   @id @default(uuid())
   ninioId   String
   ninio     Ninio    @relation(fields: [ninioId], references: [id], onDelete: Cascade)
-  name      String
-  dose      String  
-  horarios  String
-  dias      Int[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  name            String
+  dose            String
+  horarios        String
+  dias            Int[]
+  efectosSubida    String?   // Qué pasa cuando se SUBE la dosis
+  efectosBajada    String?   // Qué pasa cuando se BAJA la dosis
+  efectosMantenida String?   // Qué pasa cuando se MANTIENE la dosis
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 model Tracker {
@@ -57,14 +68,17 @@ model Tracker {
   moods        String[] 
   energy       String   
 
-  hasCrisis    Boolean
-  crisisTypes  String[] 
-  otherType    String?
-  startTime    String?  
-  durationHrs  Int?
-  durationMin  Int?
-  durationSec  Int?
-  triggers     String?  
+  hasCrisis      Boolean
+  crisisTypes    String[]
+  otherType      String?
+  crisisSeverity String?   // "leve" | "moderada" | "severa"
+  requiredRescue Boolean?  // Requirió medicación de rescate
+  requiredER     Boolean?  // Requirió guardia/emergencia
+  startTime      String?
+  durationHrs    Int?
+  durationMin    Int?
+  durationSec    Int?
+  triggers       String?
 
   feedQuality   String   
   hasRejection  Boolean
@@ -75,20 +89,38 @@ model Tracker {
 
   tookAllMeds   Boolean
   missedMedIds  String[] 
-  doseAltered   Boolean
-  alteredMedId  String?  
-  actualDose    String?  
+  doseAltered         Boolean
+  alteredMedId        String?
+  actualDose          String?
+  direccionAlteracion String?
+  alteraciones        Json?     // [{medId, dosis, direccion}]
   hadTherapy    Boolean
   therapyDetail String?  
   attention     String   
 
-  achievements     String?  
-  hasBehaviorIssue Boolean
-  behaviorDetail   String?  
-  regulation       String?  
-  notes            String?
+  achievements       String?
+  hasBehaviorIssue   Boolean
+  behaviorDetail     String?
+  regulation         String?
+  notes              String?
+  efectosObservados  String[]  // Efectos observados al alterar dosis
+  crises             Json?     // [{startTime, endTime, durationHrs, durationMin, durationSec, types, otherType, severity, requiredRescue, requiredER, triggers}]
 
   @@unique([ninioId, date])
+}
+
+model Consulta {
+  id          String   @id @default(uuid())
+  ninioId     String
+  ninio       Ninio    @relation(fields: [ninioId], references: [id], onDelete: Cascade)
+  date        String   // YYYY-MM-DD
+  doctor      String
+  specialty   String?
+  summary     String
+  indications String?
+  nextDate    String?  // próxima cita YYYY-MM-DD
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Crisis {
