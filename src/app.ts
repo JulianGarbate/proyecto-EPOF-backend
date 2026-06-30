@@ -5,7 +5,25 @@ import { errorHandler } from "./middlewares/errorHandler";
 
 const app = express();
 
-app.use(cors());
+const corsOptions: cors.CorsOptions = {
+	origin(origin, callback) {
+		if (!origin) {
+			callback(null, true);
+			return;
+		}
+
+		const isAllowed = [
+			"http://localhost:3000",
+			process.env.VERCEL_URL,
+		]
+			.filter((value): value is string => Boolean(value))
+			.includes(origin);
+
+		callback(null, isAllowed);
+	},
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 app.use("/api", routes);
