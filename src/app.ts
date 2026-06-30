@@ -7,18 +7,23 @@ const app = express();
 
 const corsOptions: cors.CorsOptions = {
 	origin(origin, callback) {
+		// Allow server-to-server requests (no origin header)
 		if (!origin) {
 			callback(null, true);
 			return;
 		}
 
-		const isAllowed = [
+		const allowedExact = [
 			"http://localhost:3000",
+			"http://localhost:4000",
 			"https://proyecto-epof.vercel.app",
 			process.env.FRONTEND_URL,
-		]
-			.filter((value): value is string => Boolean(value))
-			.includes(origin);
+		].filter((value): value is string => Boolean(value));
+
+		// Also allow any Vercel preview deployment (*.vercel.app)
+		const isVercelPreview = /^https:\/\/[\w-]+\.vercel\.app$/.test(origin);
+
+		const isAllowed = allowedExact.includes(origin) || isVercelPreview;
 
 		callback(null, isAllowed);
 	},
