@@ -2,9 +2,12 @@ import { Router } from "express";
 import { requireAuth } from "../middlewares/requireAuth";
 import { getMedications, createMedication, updateMedication, deleteMedication } from "../controllers/medications.controller";
 import { getConsultas, createConsulta, updateConsulta, deleteConsulta } from "../controllers/consultas.controller";
+import { getMedicationAnalysis } from "../controllers/analysis.controller";
 
 const router = Router();
 router.use(requireAuth);
+
+router.get("/:id/medication-analysis",    getMedicationAnalysis);
 
 router.get("/:id/medications",            getMedications);
 router.post("/:id/medications",           createMedication);

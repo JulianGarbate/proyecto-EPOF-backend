@@ -1,5 +1,14 @@
 import { Request, Response, NextFunction } from "express";
-import { Prisma } from "@prisma/client";
+
+function isPrismaError(err: unknown): err is { code: string; name: string } {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    "code" in err &&
+    "name" in err &&
+    typeof (err as Record<string, unknown>).code === "string"
+  );
+}
 
 export function errorHandler(
   err: Error,
@@ -10,7 +19,7 @@ export function errorHandler(
   void next;
   console.error(err);
 
-  if (err instanceof Prisma.PrismaClientKnownRequestError) {
+  if (isPrismaError(err) && err.name === "PrismaClientKnownRequestError") {
     if (err.code === "P2002") {
       res.status(409).json({ error: "Ya existe un registro con ese valor" });
       return;
@@ -23,7 +32,7 @@ export function errorHandler(
     return;
   }
 
-  if (err instanceof Prisma.PrismaClientValidationError) {
+  if (err.name === "PrismaClientValidationError") {
     res.status(400).json({ error: "Datos inválidos" });
     return;
   }
