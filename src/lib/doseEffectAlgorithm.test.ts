@@ -99,10 +99,10 @@ describe("runDoseEffectAnalysis", () => {
     );
 
     assert.ok(sleepFinding, "Should detect sleep pattern");
-    assert.equal(sleepFinding.nivel, "patron_detectado");
-    assert.equal(sleepFinding.tipo, "beneficio");
-    assert.ok(sleepFinding.eventos_consistentes >= 3);
-    assert.ok(sleepFinding.score_confianza >= 0.75);
+    assert.equal(sleepFinding!.nivel, "patron_detectado");
+    assert.equal(sleepFinding!.tipo, "beneficio");
+    assert.ok(sleepFinding!.eventos_consistentes >= 3);
+    assert.ok(sleepFinding!.score_confianza >= 0.75);
   });
 
   it("weak pattern (2 events, k/K=1.0 ≥ 0.66) → posible_patron", () => {
@@ -122,10 +122,10 @@ describe("runDoseEffectAnalysis", () => {
     );
 
     assert.ok(sleepFinding, "Should detect weak pattern");
-    assert.equal(sleepFinding.nivel, "posible_patron");
-    assert.equal(sleepFinding.tipo, "consecuencia"); // sleep decreased
-    assert.equal(sleepFinding.eventos_totales, 2);
-    assert.equal(sleepFinding.eventos_consistentes, 2);
+    assert.equal(sleepFinding!.nivel, "posible_patron");
+    assert.equal(sleepFinding!.tipo, "consecuencia"); // sleep decreased
+    assert.equal(sleepFinding!.eventos_totales, 2);
+    assert.equal(sleepFinding!.eventos_consistentes, 2);
   });
 
   it("confounded event excluded — K drops below threshold → no finding", () => {
