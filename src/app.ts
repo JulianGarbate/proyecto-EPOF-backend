@@ -6,6 +6,10 @@ import { errorHandler } from "./middlewares/errorHandler";
 
 const app = express();
 
+// Required for correct req.ip behind Vercel/Render/Heroku reverse proxies,
+// so express-rate-limit reads X-Forwarded-For instead of the proxy's IP.
+app.set("trust proxy", 1);
+
 const ALLOWED_ORIGINS = [
   "http://localhost:3000",
   "http://localhost:4000",

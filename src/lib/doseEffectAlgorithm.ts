@@ -31,10 +31,10 @@ export interface AlgorithmConfig {
 }
 
 export const DEFAULT_CONFIG: AlgorithmConfig = {
-  W_antes: 10,
-  D_washout: 3,
-  W_despues: 10,
-  min_dias_registrados: 5,
+  W_antes: 7,
+  D_washout: 1,
+  W_despues: 7,
+  min_dias_registrados: 3,
 };
 
 export interface AnalysisFinding {
@@ -130,8 +130,11 @@ function toNumeric(val: unknown, m: MetricConfig): number | null {
     const s = String(val).toLowerCase().trim();
     return m.ordinalMap && s in m.ordinalMap ? m.ordinalMap[s] : null;
   }
-  // boolean
-  return val ? 1 : 0;
+  // boolean — only accept actual booleans or the strings "true"/"false"
+  if (typeof val === "boolean") return val ? 1 : 0;
+  if (val === "true")  return 1;
+  if (val === "false") return 0;
+  return null;
 }
 
 function mean(values: number[]): number | null {
@@ -238,8 +241,8 @@ export function runDoseEffectAnalysis(
         const ratio = k / K;
 
         let nivel: "posible_patron" | "patron_detectado" | null = null;
-        if (k >= 3 && ratio >= 0.75)      nivel = "patron_detectado";
-        else if (k >= 2 && ratio >= 0.66) nivel = "posible_patron";
+        if (k >= 3 && ratio >= 0.66)      nivel = "patron_detectado";
+        else if (k >= 2 && ratio >= 0.50) nivel = "posible_patron";
         if (!nivel) continue;
 
         // Average % change for consistent events
