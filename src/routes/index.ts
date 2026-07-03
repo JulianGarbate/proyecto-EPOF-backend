@@ -5,12 +5,10 @@ import patientsRouter from "./patients";
 import recordsRouter from "./records";
 import crisisRouter  from "./crisis";
 import shareRouter   from "./share";
-import seedDemoRouter from "./seedDemo";
 
 const router = Router();
 
 router.get("/health", (_req, res) => { res.json({ status: "ok" }); });
-router.use("/internal/seed-demo", seedDemoRouter);
 
 router.use("/auth",     authRouter);
 router.use("/ninios",   niniosRouter);
