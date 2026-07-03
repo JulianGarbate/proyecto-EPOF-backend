@@ -5,6 +5,7 @@ import patientsRouter from "./patients";
 import recordsRouter from "./records";
 import crisisRouter  from "./crisis";
 import shareRouter   from "./share";
+import seedDemoRouter from "./seedDemo";
 
 const router = Router();
 
@@ -16,5 +17,6 @@ router.use("/patients", patientsRouter);
 router.use("/records",  recordsRouter);
 router.use("/crisis",   crisisRouter);
 router.use("/share",    shareRouter);
+router.use("/internal/seed-demo", seedDemoRouter);
 
 export default router;
