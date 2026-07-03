@@ -28,17 +28,23 @@ function rec(date: string, overrides: Record<string, unknown> = {}) {
     sleepQuality:       "buena",
     energy:             "media",
     hasCrisis:          false,
+    crisisTypes:        [] as string[],
     bowelCount:         2,
     feedQuality:        "buena",
-    attention:          "media",
-    hasBehaviorIssue:   false,
+    hasRejection:       false,
+    rejectedMeals:      [] as string[],
+    bristolTypes:       [] as string[],
+    tookAllMeds:        true,
+    missedMedIds:       [] as string[],
     doseAltered:        false,
     alteredMedId:       null,
     direccionAlteracion: null,
     alteraciones:       null,
-    moods:              [],
-    hasRejection:       false,
-    crisisEntries:      [],
+    hadTherapy:         false,
+    attention:          "media",
+    hasBehaviorIssue:   false,
+    efectosObservados:  [] as string[],
+    moods:              [] as string[],
     ...overrides,
   };
 }
@@ -60,7 +66,7 @@ router.get("/run", async (req: Request, res: Response): Promise<void> => {
   }
 
   // 1. Create new medications if they don't exist
-  await prisma.medication.upsert({
+  await prisma.medicacion.upsert({
     where:  { id: MED_LEVETI },
     update: {},
     create: {
@@ -72,7 +78,7 @@ router.get("/run", async (req: Request, res: Response): Promise<void> => {
       dias:     [0,1,2,3,4,5,6],
     },
   });
-  await prisma.medication.upsert({
+  await prisma.medicacion.upsert({
     where:  { id: MED_CLONA },
     update: {},
     create: {
@@ -137,7 +143,7 @@ router.get("/run", async (req: Request, res: Response): Promise<void> => {
   let inserted = 0;
   for (const r of records) {
     try {
-      await (prisma.tracker as unknown as { create: (args: { data: typeof r }) => Promise<unknown> }).create({ data: r });
+      await prisma.tracker.create({ data: r as Parameters<typeof prisma.tracker.create>[0]["data"] });
       inserted++;
     } catch {
       // skip duplicates
