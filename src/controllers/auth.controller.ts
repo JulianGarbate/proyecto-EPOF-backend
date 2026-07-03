@@ -2,13 +2,19 @@ import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import prisma from "../lib/prisma";
+import { AuthRequest } from "../middlewares/requireAuth";
 
-const JWT_SECRET = process.env.JWT_SECRET || "secret";
+if (!process.env.JWT_SECRET) throw new Error("JWT_SECRET environment variable is required");
+const JWT_SECRET = process.env.JWT_SECRET;
 
 export async function register(req: Request, res: Response) {
   const { email, password, name } = req.body;
   if (!email || !password || !name) {
     res.status(400).json({ error: "Todos los campos son requeridos" });
+    return;
+  }
+  if (typeof password !== "string" || password.length < 8) {
+    res.status(400).json({ error: "La contraseña debe tener al menos 8 caracteres" });
     return;
   }
 
@@ -52,24 +58,9 @@ export async function login(req: Request, res: Response) {
   res.json({ token, user: safeUser });
 }
 
-export async function me(req: Request, res: Response) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader?.startsWith("Bearer ")) {
-    res.status(401).json({ error: "No autorizado" });
-    return;
-  }
-
-  const token = authHeader.slice(7);
-  let payload: { userId: string };
-  try {
-    payload = jwt.verify(token, JWT_SECRET) as { userId: string };
-  } catch {
-    res.status(401).json({ error: "Token inválido" });
-    return;
-  }
-
+export async function me(req: AuthRequest, res: Response) {
   const user = await prisma.user.findUnique({
-    where: { id: payload.userId },
+    where: { id: req.userId! },
     select: { id: true, email: true, name: true, createdAt: true },
   });
 

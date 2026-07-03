@@ -99,9 +99,20 @@ export async function updateRecord(req: AuthRequest, res: Response) {
   res.json({ record: updated });
 }
 
-// Limpia campos que no deben venir del body
+const ALLOWED_RECORD_FIELDS = new Set([
+  "sleep", "wakeUps", "sleepQuality", "moods", "energy",
+  "hasCrisis", "crises", "crisisTypes", "otherType", "crisisSeverity",
+  "requiredRescue", "requiredER", "startTime", "durationHrs", "durationMin",
+  "durationSec", "triggers",
+  "feedQuality", "hasRejection", "rejectedMeals", "mealNote", "bowelCount", "bristolTypes",
+  "tookAllMeds", "missedMedIds", "doseAltered", "alteredMedId", "actualDose",
+  "direccionAlteracion", "efectosObservados", "alteraciones",
+  "hadTherapy", "therapyDetail", "attention", "achievements",
+  "hasBehaviorIssue", "behaviorDetail", "regulation", "notes",
+]);
+
 function sanitize(body: Record<string, unknown>) {
-  const { id, ninioId, createdAt, date, ...rest } = body;
-  void id; void ninioId; void createdAt; void date;
-  return rest;
+  return Object.fromEntries(
+    Object.entries(body).filter(([k]) => ALLOWED_RECORD_FIELDS.has(k))
+  );
 }

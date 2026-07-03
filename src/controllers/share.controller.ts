@@ -3,6 +3,14 @@ import { randomUUID } from "crypto";
 import prisma from "../lib/prisma";
 import { AuthRequest } from "../middlewares/requireAuth";
 
+// GET /api/share/:ninioId  — devuelve el shareToken existente (requiere auth)
+export async function getShareToken(req: AuthRequest, res: Response) {
+  const id = req.params.id as string;
+  const ninio = await prisma.ninio.findFirst({ where: { id, userId: req.userId } });
+  if (!ninio) { res.status(404).json({ error: "Paciente no encontrado" }); return; }
+  res.json({ shareToken: ninio.shareToken ?? null });
+}
+
 // POST /api/share/:ninioId  — genera o regenera el shareToken (requiere auth)
 export async function generateShareToken(req: AuthRequest, res: Response) {
   const id = req.params.id as string;

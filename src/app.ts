@@ -1,37 +1,37 @@
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
 import routes from "./routes/index";
 import { errorHandler } from "./middlewares/errorHandler";
 
 const app = express();
 
+// Required for correct req.ip behind Vercel/Render/Heroku reverse proxies,
+// so express-rate-limit reads X-Forwarded-For instead of the proxy's IP.
+app.set("trust proxy", 1);
+
+const ALLOWED_ORIGINS = [
+  "http://localhost:3000",
+  "http://localhost:4000",
+  "https://proyecto-epof.vercel.app",
+  process.env.FRONTEND_URL,
+].filter((v): v is string => Boolean(v));
+
 const corsOptions: cors.CorsOptions = {
-	origin(origin, callback) {
-		// Allow server-to-server requests (no origin header)
-		if (!origin) {
-			callback(null, true);
-			return;
-		}
+  origin(origin, callback) {
+    if (!origin) { callback(null, true); return; }
 
-		const allowedExact = [
-			"http://localhost:3000",
-			"http://localhost:4000",
-			"https://proyecto-epof.vercel.app",
-			process.env.FRONTEND_URL,
-		].filter((value): value is string => Boolean(value));
+    const isExact = ALLOWED_ORIGINS.includes(origin);
+    const isOwnPreview = /^https:\/\/proyecto-epof[\w-]*\.vercel\.app$/.test(origin);
 
-		// Also allow any Vercel preview deployment (*.vercel.app)
-		const isVercelPreview = /^https:\/\/[\w-]+\.vercel\.app$/.test(origin);
-
-		const isAllowed = allowedExact.includes(origin) || isVercelPreview;
-
-		callback(null, isAllowed);
-	},
-	methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-	allowedHeaders: ["Content-Type", "Authorization"],
-	optionsSuccessStatus: 200,
+    callback(null, isExact || isOwnPreview);
+  },
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  optionsSuccessStatus: 200,
 };
 
+app.use(helmet());
 app.use(cors(corsOptions));
 app.use(express.json());
 
