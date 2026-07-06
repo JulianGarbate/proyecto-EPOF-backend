@@ -1,6 +1,6 @@
 // TEMPORARY — seed demo data. Remove after use.
 import { Router, Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -39,7 +39,7 @@ function rec(date: string, overrides: Record<string, unknown> = {}) {
     doseAltered:        false,
     alteredMedId:       null,
     direccionAlteracion: null,
-    alteraciones:       null,
+    alteraciones:       Prisma.JsonNull,
     hadTherapy:         false,
     attention:          "media",
     hasBehaviorIssue:   false,

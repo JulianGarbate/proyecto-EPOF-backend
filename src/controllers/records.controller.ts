@@ -107,7 +107,9 @@ const ALLOWED_RECORD_FIELDS = new Set([
   "feedQuality", "hasRejection", "rejectedMeals", "mealNote", "bowelCount", "bristolTypes",
   "tookAllMeds", "missedMedIds", "doseAltered", "alteredMedId", "actualDose",
   "direccionAlteracion", "efectosObservados", "alteraciones",
-  "hadTherapy", "therapyDetail", "attention", "achievements",
+  "hadTherapy", "therapyTypes", "therapyDetail", "activities",
+  "intercurrencias", "intercurrenciasNote",
+  "attention", "achievements",
   "hasBehaviorIssue", "behaviorDetail", "regulation", "notes",
 ]);
 

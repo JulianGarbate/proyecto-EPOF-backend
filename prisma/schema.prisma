@@ -16,6 +16,7 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   ninios    Ninio[]  @relation("UserNinios")
+  cuidadorOf CuidadorNinio[] @relation("CuidadorUser")
 }
 
 model Ninio {
@@ -25,12 +26,11 @@ model Ninio {
   height      Float
   age         Int
   diagnosticos String[]
-  // Protocolo de crisis
-  rescueMed        String?   // Medicamento de rescate
-  rescueDose       String?   // Dosis de rescate
-  alertMinutes     Int?      // Minutos para avisar al médico
-  ambulanceMinutes Int?      // Minutos para llamar ambulancia
-  emergencyPhone   String?   // Teléfono de emergencia
+  rescueMed        String?
+  rescueDose       String?
+  alertMinutes     Int?
+  ambulanceMinutes Int?
+  emergencyPhone   String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   trackers    Tracker[]
@@ -39,7 +39,24 @@ model Ninio {
   user        User?        @relation("UserNinios", fields: [userId], references: [id], onDelete: Cascade)
   medications  Medicacion[]
   consultas    Consulta[]
-  shareToken   String?  @unique  // Token para vista pública del médico
+  shareToken   String?  @unique
+  cuidadores   CuidadorNinio[] @relation("NinioCuidadores")
+}
+
+// permissions JSON shape: { canFillTracker, canSeeHistory, canSeeMeds, canSeeCrisisProtocol }
+model CuidadorNinio {
+  id          String   @id @default(uuid())
+  cuidadorId  String
+  cuidador    User     @relation("CuidadorUser", fields: [cuidadorId], references: [id], onDelete: Cascade)
+  ninioId     String
+  ninio       Ninio    @relation("NinioCuidadores", fields: [ninioId], references: [id], onDelete: Cascade)
+  permissions Json
+  inviteToken String?  @unique
+  inviteEmail String?
+  accepted    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@unique([cuidadorId, ninioId])
 }
 
 model Medicacion {
@@ -96,16 +113,21 @@ model Tracker {
   direccionAlteracion String?
   alteraciones        Json?     // [{medId, dosis, direccion}]
   hadTherapy    Boolean
-  therapyDetail String?  
-  attention     String   
+  therapyTypes  String[]
+  therapyDetail String?
+  activities    String[]
+  attention     String
+
+  intercurrencias     String[]
+  intercurrenciasNote String?
 
   achievements       String?
   hasBehaviorIssue   Boolean
   behaviorDetail     String?
   regulation         String?
   notes              String?
-  efectosObservados  String[]  // Efectos observados al alterar dosis
-  crises             Json?     // [{startTime, endTime, durationHrs, durationMin, durationSec, types, otherType, severity, requiredRescue, requiredER, triggers}]
+  efectosObservados  String[]
+  crises             Json?
 
   @@unique([ninioId, date])
 }
