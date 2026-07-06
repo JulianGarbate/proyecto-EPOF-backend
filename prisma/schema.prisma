@@ -8,11 +8,17 @@ generator client {
   binaryTargets = ["native", "rhel-openssl-3.0.x", "debian-openssl-3.0.x"]
 }
 
+enum Role {
+  TUTOR
+  CUIDADOR
+}
+
 model User {
   id        String   @id @default(uuid())
   name      String
   email     String   @unique
   password  String
+  role      Role     @default(TUTOR)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   ninios    Ninio[]  @relation("UserNinios")
@@ -116,6 +122,7 @@ model Tracker {
   therapyTypes  String[]
   therapyDetail String?
   activities    String[]
+  activitiesOther String?
   attention     String
 
   intercurrencias     String[]

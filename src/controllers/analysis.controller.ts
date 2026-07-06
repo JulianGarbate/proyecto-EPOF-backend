@@ -2,16 +2,13 @@ import { Response } from "express";
 import prisma from "../lib/prisma";
 import { AuthRequest } from "../middlewares/requireAuth";
 import { runDoseEffectAnalysis, TrackerRecord, Medication } from "../lib/doseEffectAlgorithm";
-
-async function ownedNinio(ninioId: string, userId: string) {
-  return prisma.ninio.findFirst({ where: { id: ninioId, userId } });
-}
+import { accessibleNinio } from "../lib/access";
 
 // GET /api/patients/:id/medication-analysis
 export async function getMedicationAnalysis(req: AuthRequest, res: Response) {
   const ninioId = req.params.id as string;
 
-  const ninio = await ownedNinio(ninioId, req.userId!);
+  const ninio = await accessibleNinio(ninioId, req.userId!, ["canSeeMeds", "canSeeHistory"]);
   if (!ninio) { res.status(404).json({ error: "Paciente no encontrado" }); return; }
 
   const [rawMeds, rawRecords] = await Promise.all([

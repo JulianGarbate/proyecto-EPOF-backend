@@ -1,6 +1,7 @@
 import { Response } from "express";
 import prisma from "../lib/prisma";
 import { AuthRequest } from "../middlewares/requireAuth";
+import { accessibleNinio } from "../lib/access";
 
 async function ownedNinio(ninioId: string, userId: string) {
   return prisma.ninio.findFirst({ where: { id: ninioId, userId } });
@@ -9,7 +10,7 @@ async function ownedNinio(ninioId: string, userId: string) {
 // GET /api/patients/:id/medications
 export async function getMedications(req: AuthRequest, res: Response) {
   const id = req.params.id as string;
-  const ninio = await ownedNinio(id, req.userId!);
+  const ninio = await accessibleNinio(id, req.userId!, ["canSeeMeds"]);
   if (!ninio) { res.status(404).json({ error: "Paciente no encontrado" }); return; }
 
   const meds = await prisma.medicacion.findMany({

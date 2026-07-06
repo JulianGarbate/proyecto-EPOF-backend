@@ -30,7 +30,7 @@ export async function listCuidadores(req: AuthRequest, res: Response) {
   if (!ninio) { res.status(403).json({ error: "Sin permiso" }); return; }
 
   const rows = await prisma.cuidadorNinio.findMany({
-    where: { ninioId },
+    where: { ninioId, cuidadorId: { not: ninio.userId ?? undefined } },
     include: { cuidador: { select: { id: true, name: true, email: true } } },
     orderBy: { createdAt: "asc" },
   });
@@ -53,19 +53,26 @@ export async function inviteCuidador(req: AuthRequest, res: Response) {
 
   const existingUser = await prisma.user.findUnique({ where: { email } });
 
+  // El dueño no puede invitarse a sí mismo como cuidador.
+  if (existingUser && existingUser.id === ninio.userId) {
+    res.status(400).json({ error: "No podés ser cuidador de tu propio niño" });
+    return;
+  }
+
   let invite;
   if (existingUser) {
+    // El invitado ya tiene cuenta: le damos acceso automáticamente, sin link.
     invite = await prisma.cuidadorNinio.upsert({
       where: { cuidadorId_ninioId: { cuidadorId: existingUser.id, ninioId } },
       create: {
         cuidadorId: existingUser.id,
         ninioId,
         permissions: asJson(perms),
-        inviteToken,
+        inviteToken: null,
         inviteEmail: email,
-        accepted: false,
+        accepted: true,
       },
-      update: { permissions: asJson(perms), inviteToken, accepted: false },
+      update: { permissions: asJson(perms), inviteToken: null, accepted: true },
     });
   } else {
     invite = await prisma.cuidadorNinio.create({
@@ -108,6 +115,25 @@ export async function acceptInvite(req: AuthRequest, res: Response) {
   const invite = await prisma.cuidadorNinio.findUnique({ where: { inviteToken: token } });
   if (!invite) { res.status(404).json({ error: "Invitación no encontrada o ya usada" }); return; }
   if (invite.accepted) { res.json({ ok: true, already: true }); return; }
+
+  // El dueño del niño no puede ser cuidador de su propio niño.
+  const owns = await prisma.ninio.findFirst({ where: { id: invite.ninioId, userId: req.userId! } });
+  if (owns) { res.status(400).json({ error: "No podés ser cuidador de tu propio niño" }); return; }
+
+  // La invitación es para un email específico: solo ese usuario puede aceptarla.
+  const me = await prisma.user.findUnique({ where: { id: req.userId! } });
+  if (invite.inviteEmail && me && me.email.toLowerCase() !== invite.inviteEmail.toLowerCase()) {
+    res.status(403).json({ error: "Esta invitación fue enviada a otro email" });
+    return;
+  }
+
+  // Evitar violar la restricción única (cuidadorId, ninioId) si ya existe una fila.
+  const existing = await prisma.cuidadorNinio.findUnique({
+    where: { cuidadorId_ninioId: { cuidadorId: req.userId!, ninioId: invite.ninioId } },
+  });
+  if (existing && existing.id !== invite.id) {
+    await prisma.cuidadorNinio.delete({ where: { id: existing.id } });
+  }
 
   await prisma.cuidadorNinio.update({
     where: { id: invite.id },

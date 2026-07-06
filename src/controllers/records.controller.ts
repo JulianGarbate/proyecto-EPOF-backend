@@ -1,10 +1,7 @@
 import { Response } from "express";
 import prisma from "../lib/prisma";
 import { AuthRequest } from "../middlewares/requireAuth";
-
-async function ownedNinio(ninioId: string, userId: string) {
-  return prisma.ninio.findFirst({ where: { id: ninioId, userId } });
-}
+import { accessibleNinio } from "../lib/access";
 
 // GET /api/records?patientId=&date=YYYY-MM-DD   → registro único
 // GET /api/records?patientId=&limit=N            → historial
@@ -12,7 +9,7 @@ export async function getRecords(req: AuthRequest, res: Response) {
   const { patientId, date, limit } = req.query as Record<string, string>;
   if (!patientId) { res.status(400).json({ error: "patientId es requerido" }); return; }
 
-  const ninio = await ownedNinio(patientId, req.userId!);
+  const ninio = await accessibleNinio(patientId, req.userId!, ["canSeeHistory", "canFillTracker"]);
   if (!ninio) { res.status(404).json({ error: "Paciente no encontrado" }); return; }
 
   if (date) {
@@ -37,7 +34,7 @@ export async function createRecord(req: AuthRequest, res: Response) {
   const { ninioId } = req.body;
   if (!ninioId) { res.status(400).json({ error: "ninioId es requerido" }); return; }
 
-  const ninio = await ownedNinio(ninioId, req.userId!);
+  const ninio = await accessibleNinio(ninioId, req.userId!, ["canFillTracker"]);
   if (!ninio) { res.status(404).json({ error: "Paciente no encontrado" }); return; }
 
   const { date, ...rest } = req.body;
@@ -58,7 +55,7 @@ export async function getRecordById(req: AuthRequest, res: Response) {
   const record = await prisma.tracker.findUnique({ where: { id: req.params.id as string } });
   if (!record) { res.status(404).json({ error: "Registro no encontrado" }); return; }
 
-  const ninio = await ownedNinio(record.ninioId, req.userId!);
+  const ninio = await accessibleNinio(record.ninioId, req.userId!, ["canSeeHistory", "canFillTracker"]);
   if (!ninio) { res.status(403).json({ error: "Sin permiso" }); return; }
 
   res.json({ record });
@@ -73,7 +70,7 @@ export async function getAlterations(req: AuthRequest, res: Response) {
     return;
   }
 
-  const ninio = await ownedNinio(patientId, req.userId!);
+  const ninio = await accessibleNinio(patientId, req.userId!, ["canSeeMeds", "canSeeHistory"]);
   if (!ninio) { res.status(404).json({ error: "Paciente no encontrado" }); return; }
 
   const records = await prisma.tracker.findMany({
@@ -89,7 +86,7 @@ export async function updateRecord(req: AuthRequest, res: Response) {
   const record = await prisma.tracker.findUnique({ where: { id } });
   if (!record) { res.status(404).json({ error: "Registro no encontrado" }); return; }
 
-  const ninio = await ownedNinio(record.ninioId, req.userId!);
+  const ninio = await accessibleNinio(record.ninioId, req.userId!, ["canFillTracker"]);
   if (!ninio) { res.status(403).json({ error: "Sin permiso" }); return; }
 
   const updated = await prisma.tracker.update({
@@ -107,7 +104,7 @@ const ALLOWED_RECORD_FIELDS = new Set([
   "feedQuality", "hasRejection", "rejectedMeals", "mealNote", "bowelCount", "bristolTypes",
   "tookAllMeds", "missedMedIds", "doseAltered", "alteredMedId", "actualDose",
   "direccionAlteracion", "efectosObservados", "alteraciones",
-  "hadTherapy", "therapyTypes", "therapyDetail", "activities",
+  "hadTherapy", "therapyTypes", "therapyDetail", "activities", "activitiesOther",
   "intercurrencias", "intercurrenciasNote",
   "attention", "achievements",
   "hasBehaviorIssue", "behaviorDetail", "regulation", "notes",

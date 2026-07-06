@@ -8,7 +8,7 @@ if (!process.env.JWT_SECRET) throw new Error("JWT_SECRET environment variable is
 const JWT_SECRET = process.env.JWT_SECRET;
 
 export async function register(req: Request, res: Response) {
-  const { email, password, name } = req.body;
+  const { email, password, name, role } = req.body;
   if (!email || !password || !name) {
     res.status(400).json({ error: "Todos los campos son requeridos" });
     return;
@@ -17,6 +17,7 @@ export async function register(req: Request, res: Response) {
     res.status(400).json({ error: "La contraseña debe tener al menos 8 caracteres" });
     return;
   }
+  const userRole: "TUTOR" | "CUIDADOR" = role === "CUIDADOR" ? "CUIDADOR" : "TUTOR";
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
@@ -26,11 +27,11 @@ export async function register(req: Request, res: Response) {
 
   const hashed = await bcrypt.hash(password, 10);
   const user = await prisma.user.create({
-    data: { email, password: hashed, name },
-    select: { id: true, email: true, name: true, createdAt: true },
+    data: { email, password: hashed, name, role: userRole },
+    select: { id: true, email: true, name: true, role: true, createdAt: true },
   });
 
-  const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "7d" });
+  const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
   res.status(201).json({ token, user });
 }
 
@@ -53,7 +54,7 @@ export async function login(req: Request, res: Response) {
     return;
   }
 
-  const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "7d" });
+  const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
   const { password: _, ...safeUser } = user;
   res.json({ token, user: safeUser });
 }
@@ -61,7 +62,7 @@ export async function login(req: Request, res: Response) {
 export async function me(req: AuthRequest, res: Response) {
   const user = await prisma.user.findUnique({
     where: { id: req.userId! },
-    select: { id: true, email: true, name: true, createdAt: true },
+    select: { id: true, email: true, name: true, role: true, createdAt: true },
   });
 
   if (!user) {

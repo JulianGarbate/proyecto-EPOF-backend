@@ -4,17 +4,40 @@ import { AuthRequest } from "../middlewares/requireAuth";
 
 // GET /api/ninios
 export async function getNinios(req: AuthRequest, res: Response) {
-  const ninios = await prisma.ninio.findMany({
+  const owned = await prisma.ninio.findMany({
     where: { userId: req.userId },
     orderBy: { createdAt: "asc" },
   });
-  res.json({ ninios });
+
+  const assignments = await prisma.cuidadorNinio.findMany({
+    where: { cuidadorId: req.userId, accepted: true },
+    include: { ninio: true },
+    orderBy: { createdAt: "asc" },
+  });
+
+  const byId = new Map<string, Record<string, unknown>>();
+  for (const a of assignments) {
+    byId.set(a.ninio.id, { ...a.ninio, role: "cuidador", permissions: a.permissions });
+  }
+  // Owned takes precedence over any caregiver assignment.
+  for (const n of owned) {
+    byId.set(n.id, { ...n, role: "owner", permissions: null });
+  }
+
+  res.json({ ninios: [...byId.values()] });
 }
 
 // GET /api/ninios/:id
 export async function getNinio(req: AuthRequest, res: Response) {
   const id = req.params.id as string;
-  const ninio = await prisma.ninio.findFirst({ where: { id, userId: req.userId } });
+  let ninio = await prisma.ninio.findFirst({ where: { id, userId: req.userId } });
+  if (!ninio) {
+    const assignment = await prisma.cuidadorNinio.findFirst({
+      where: { ninioId: id, cuidadorId: req.userId, accepted: true },
+      include: { ninio: true },
+    });
+    ninio = assignment?.ninio ?? null;
+  }
   if (!ninio) { res.status(404).json({ error: "Niño no encontrado" }); return; }
   res.json({ ninio });
 }
