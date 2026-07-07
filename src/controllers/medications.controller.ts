@@ -10,7 +10,9 @@ async function ownedNinio(ninioId: string, userId: string) {
 // GET /api/patients/:id/medications
 export async function getMedications(req: AuthRequest, res: Response) {
   const id = req.params.id as string;
-  const ninio = await accessibleNinio(id, req.userId!, ["canSeeMeds"]);
+  // Filling the daily tracker requires reading the medication plan (to flag
+  // missed / altered doses), so canFillTracker also grants read access here.
+  const ninio = await accessibleNinio(id, req.userId!, ["canSeeMeds", "canFillTracker"]);
   if (!ninio) { res.status(404).json({ error: "Paciente no encontrado" }); return; }
 
   const meds = await prisma.medicacion.findMany({
