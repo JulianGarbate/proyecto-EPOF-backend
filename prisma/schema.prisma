@@ -33,6 +33,8 @@ model Ninio {
   height      Float
   age         Int
   diagnosticos String[]
+  coberturaMedica  String?
+  nroAsociado      String?
   rescueMed        String?
   rescueDose       String?
   alertMinutes     Int?
@@ -105,10 +107,12 @@ model Tracker {
   durationSec    Int?
   triggers       String?
 
-  feedQuality   String   
-  hasRejection  Boolean
-  rejectedMeals String[] 
-  mealNote      String?
+  feedQuality     String
+  hasRejection    Boolean
+  rejectedMeals   String[]
+  rejectedItems   String?   // qué alimentos rechazó específicamente
+  managedToEat    String?   // qué logró comer
+  mealNote        String?
   bowelCount    Int      
   bristolTypes  String[] 
 

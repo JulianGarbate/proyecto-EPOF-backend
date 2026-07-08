@@ -75,7 +75,7 @@ export async function updateNinio(req: AuthRequest, res: Response) {
   const existing = await prisma.ninio.findFirst({ where: { id, userId: req.userId } });
   if (!existing) { res.status(404).json({ error: "Niño no encontrado" }); return; }
 
-  const { fullName, weight, height, age, diagnosticos, rescueMed, rescueDose, alertMinutes, ambulanceMinutes, emergencyPhone } = req.body;
+  const { fullName, weight, height, age, diagnosticos, coberturaMedica, nroAsociado, rescueMed, rescueDose, alertMinutes, ambulanceMinutes, emergencyPhone } = req.body;
   const ninio = await prisma.ninio.update({
     where: { id },
     data: {
@@ -84,6 +84,8 @@ export async function updateNinio(req: AuthRequest, res: Response) {
       ...(height != null && { height: parseFloat(height) }),
       ...(age != null && { age: parseInt(age) }),
       ...(diagnosticos != null && { diagnosticos: Array.isArray(diagnosticos) ? diagnosticos : [diagnosticos] }),
+      ...(coberturaMedica  !== undefined && { coberturaMedica:  coberturaMedica  ?? null }),
+      ...(nroAsociado      !== undefined && { nroAsociado:      nroAsociado      ?? null }),
       ...(rescueMed        !== undefined && { rescueMed:        rescueMed        ?? null }),
       ...(rescueDose       !== undefined && { rescueDose:       rescueDose       ?? null }),
       ...(alertMinutes     !== undefined && { alertMinutes:     alertMinutes     != null ? parseInt(String(alertMinutes))     : null }),
