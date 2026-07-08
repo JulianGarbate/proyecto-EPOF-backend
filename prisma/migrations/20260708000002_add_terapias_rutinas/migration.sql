@@ -1,0 +1,1 @@
+ALTER TABLE "Ninio" ADD COLUMN IF NOT EXISTS "terapias" JSONB;

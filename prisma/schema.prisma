@@ -35,6 +35,7 @@ model Ninio {
   diagnosticos String[]
   coberturaMedica  String?
   nroAsociado      String?
+  terapias         Json?
   rescueMed        String?
   rescueDose       String?
   alertMinutes     Int?
