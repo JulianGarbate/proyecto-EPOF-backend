@@ -36,6 +36,9 @@ model Ninio {
   coberturaMedica  String?
   nroAsociado      String?
   terapias         Json?
+  doctorName       String?
+  doctorPhone      String?
+  doctorSpecialty  String?
   rescueMed        String?
   rescueDose       String?
   alertMinutes     Int?
@@ -90,8 +93,9 @@ model Tracker {
   ninio     Ninio    @relation(fields: [ninioId], references: [id], onDelete: Cascade)
   date      String   
 
-  sleep        Float    
-  wakeUps      Int      
+  sleep        Float
+  sleepNote    String?
+wakeUps      Int      
   sleepQuality String   
   moods        String[] 
   energy       String   

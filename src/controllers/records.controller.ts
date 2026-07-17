@@ -101,7 +101,7 @@ const ALLOWED_RECORD_FIELDS = new Set([
   "hasCrisis", "crises", "crisisTypes", "otherType", "crisisSeverity",
   "requiredRescue", "requiredER", "startTime", "durationHrs", "durationMin",
   "durationSec", "triggers",
-  "feedQuality", "hasRejection", "rejectedMeals", "rejectedItems", "managedToEat", "mealNote", "bowelCount", "bristolTypes",
+  "sleep", "sleepNote", "feedQuality", "hasRejection", "rejectedMeals", "rejectedItems", "managedToEat", "mealNote", "bowelCount", "bristolTypes",
   "tookAllMeds", "missedMedIds", "doseAltered", "alteredMedId", "actualDose",
   "direccionAlteracion", "efectosObservados", "alteraciones",
   "hadTherapy", "therapyTypes", "therapyDetail", "activities", "activitiesOther",
