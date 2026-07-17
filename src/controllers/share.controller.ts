@@ -61,3 +61,57 @@ export async function getPublicShare(req: Request, res: Response) {
     consultas,
   });
 }
+
+// GET /api/share/:ninioId/emergency  — devuelve el emergencyToken existente (requiere auth)
+export async function getEmergencyToken(req: AuthRequest, res: Response) {
+  const id = req.params.id as string;
+  const ninio = await prisma.ninio.findFirst({ where: { id, userId: req.userId } });
+  if (!ninio) { res.status(404).json({ error: "Paciente no encontrado" }); return; }
+  res.json({ emergencyToken: ninio.emergencyToken ?? null });
+}
+
+// POST /api/share/:ninioId/emergency  — genera o regenera el emergencyToken (requiere auth)
+export async function generateEmergencyToken(req: AuthRequest, res: Response) {
+  const id = req.params.id as string;
+  const ninio = await prisma.ninio.findFirst({ where: { id, userId: req.userId } });
+  if (!ninio) { res.status(404).json({ error: "Paciente no encontrado" }); return; }
+
+  const emergencyToken = randomUUID();
+  await prisma.ninio.update({ where: { id }, data: { emergencyToken } });
+  res.json({ emergencyToken });
+}
+
+// DELETE /api/share/:ninioId/emergency  — revoca el emergencyToken (requiere auth)
+export async function revokeEmergencyToken(req: AuthRequest, res: Response) {
+  const id = req.params.id as string;
+  const ninio = await prisma.ninio.findFirst({ where: { id, userId: req.userId } });
+  if (!ninio) { res.status(404).json({ error: "Paciente no encontrado" }); return; }
+
+  await prisma.ninio.update({ where: { id }, data: { emergencyToken: null } });
+  res.json({ ok: true });
+}
+
+// GET /api/share/emergency/:token  — ficha de emergencia pública SIN auth (para paramédicos vía QR/link)
+export async function getPublicEmergencyCard(req: Request, res: Response) {
+  const token = req.params.token as string;
+  const ninio = await prisma.ninio.findUnique({ where: { emergencyToken: token } });
+  if (!ninio) { res.status(404).json({ error: "Enlace no válido o revocado" }); return; }
+
+  res.json({
+    ninio: {
+      fullName: ninio.fullName,
+      age: ninio.age,
+      weight: ninio.weight,
+      diagnosticos: ninio.diagnosticos,
+      allergies: ninio.allergies,
+      coberturaMedica: ninio.coberturaMedica,
+      nroAsociado: ninio.nroAsociado,
+      rescueMed: ninio.rescueMed,
+      rescueDose: ninio.rescueDose,
+      doctorName: ninio.doctorName,
+      doctorPhone: ninio.doctorPhone,
+      doctorSpecialty: ninio.doctorSpecialty,
+      emergencyPhone: ninio.emergencyPhone,
+    },
+  });
+}

@@ -44,6 +44,8 @@ model Ninio {
   alertMinutes     Int?
   ambulanceMinutes Int?
   emergencyPhone   String?
+  allergies        String?   // alergias conocidas — para la ficha de emergencia
+  bowelAlertDays   Int?      // alertar tras N días consecutivos sin evacuar (null = deshabilitado)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   trackers    Tracker[]
@@ -52,7 +54,8 @@ model Ninio {
   user        User?        @relation("UserNinios", fields: [userId], references: [id], onDelete: Cascade)
   medications  Medicacion[]
   consultas    Consulta[]
-  shareToken   String?  @unique
+  shareToken     String?  @unique
+  emergencyToken String?  @unique
   cuidadores   CuidadorNinio[] @relation("NinioCuidadores")
 }
 
@@ -131,6 +134,7 @@ wakeUps      Int
   hadTherapy    Boolean
   therapyTypes  String[]
   therapyDetail String?
+  therapyNotes  Json?     // [{nombre, nota}] — observación por terapia puntual
   activities    String[]
   activitiesOther String?
   activitiesNote  String?   // por qué ocurrió la actividad fuera de lo común
