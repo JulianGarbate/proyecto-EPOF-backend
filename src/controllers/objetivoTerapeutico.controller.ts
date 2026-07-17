@@ -1,15 +1,18 @@
 import { Response } from "express";
 import prisma from "../lib/prisma";
 import { AuthRequest } from "../middlewares/requireAuth";
+import { accessibleNinio } from "../lib/access";
 
 async function ownedNinio(ninioId: string, userId: string) {
   return prisma.ninio.findFirst({ where: { id: ninioId, userId } });
 }
 
 // GET /api/patients/:id/objetivos
+// Lectura abierta a cuidadores con canFillTracker/canSeeHistory — el tracker necesita
+// ver los objetivos activos para poder marcarlos como cumplidos al cargar una terapia.
 export async function getObjetivos(req: AuthRequest, res: Response) {
   const id = req.params.id as string;
-  const ninio = await ownedNinio(id, req.userId!);
+  const ninio = await accessibleNinio(id, req.userId!, ["canFillTracker", "canSeeHistory"]);
   if (!ninio) { res.status(404).json({ error: "Paciente no encontrado" }); return; }
 
   const objetivos = await prisma.objetivoTerapeutico.findMany({
@@ -61,6 +64,28 @@ export async function updateObjetivo(req: AuthRequest, res: Response) {
       ...(fechaInicio   && { fechaInicio }),
       ...(fechaLogro    !== undefined && { fechaLogro: fechaLogro ?? null }),
     },
+  });
+  res.json({ objetivo: updated });
+}
+
+// PUT /api/patients/:id/objetivos/:objetivoId/logrado
+// Acción rápida de un solo campo — accesible a cuidadores con canFillTracker
+// (se dispara desde el tracker al marcar la terapia correspondiente).
+export async function markObjetivoLogrado(req: AuthRequest, res: Response) {
+  const id         = req.params.id         as string;
+  const objetivoId = req.params.objetivoId as string;
+  const ninio = await accessibleNinio(id, req.userId!, ["canFillTracker"]);
+  if (!ninio) { res.status(404).json({ error: "Paciente no encontrado" }); return; }
+
+  const existing = await prisma.objetivoTerapeutico.findFirst({ where: { id: objetivoId, ninioId: id } });
+  if (!existing) { res.status(404).json({ error: "Objetivo no encontrado" }); return; }
+
+  const { logrado, fecha } = req.body as { logrado?: boolean; fecha?: string };
+  const updated = await prisma.objetivoTerapeutico.update({
+    where: { id: objetivoId },
+    data: logrado === false
+      ? { estado: "activo", fechaLogro: null }
+      : { estado: "logrado", fechaLogro: fecha ?? new Date().toISOString().split("T")[0] },
   });
   res.json({ objetivo: updated });
 }

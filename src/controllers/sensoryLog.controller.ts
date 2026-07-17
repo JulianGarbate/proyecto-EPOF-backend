@@ -23,7 +23,7 @@ export async function createSensoryLog(req: AuthRequest, res: Response) {
   const ninio = await accessibleNinio(id, req.userId!, ["canFillTracker"]);
   if (!ninio) { res.status(404).json({ error: "Paciente no encontrado" }); return; }
 
-  const { date, time, context, stimulus, response } = req.body;
+  const { date, time, context, stimulus, stimulusDetail, response } = req.body;
   if (!date || !context || !response) {
     res.status(400).json({ error: "Fecha, contexto y respuesta son requeridos" });
     return;
@@ -35,6 +35,7 @@ export async function createSensoryLog(req: AuthRequest, res: Response) {
       time: time ?? null,
       context, response,
       stimulus: Array.isArray(stimulus) ? stimulus : [],
+      stimulusDetail: stimulusDetail ?? null,
     },
   });
   res.status(201).json({ log });

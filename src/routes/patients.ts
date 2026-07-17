@@ -5,7 +5,7 @@ import { getConsultas, createConsulta, updateConsulta, deleteConsulta } from "..
 import { getMedicationAnalysis } from "../controllers/analysis.controller";
 import { getSensoryLogs, createSensoryLog, deleteSensoryLog } from "../controllers/sensoryLog.controller";
 import { getHospitalizaciones, createHospitalizacion, updateHospitalizacion, deleteHospitalizacion } from "../controllers/hospitalizacion.controller";
-import { getObjetivos, createObjetivo, updateObjetivo, deleteObjetivo } from "../controllers/objetivoTerapeutico.controller";
+import { getObjetivos, createObjetivo, updateObjetivo, deleteObjetivo, markObjetivoLogrado } from "../controllers/objetivoTerapeutico.controller";
 
 const router = Router();
 router.use(requireAuth);
@@ -32,9 +32,10 @@ router.post("/:id/hospitalizaciones",                requireRole("TUTOR"), creat
 router.put("/:id/hospitalizaciones/:hospId",         requireRole("TUTOR"), updateHospitalizacion);
 router.delete("/:id/hospitalizaciones/:hospId",      requireRole("TUTOR"), deleteHospitalizacion);
 
-router.get("/:id/objetivos",                  getObjetivos);
-router.post("/:id/objetivos",                 requireRole("TUTOR"), createObjetivo);
-router.put("/:id/objetivos/:objetivoId",      requireRole("TUTOR"), updateObjetivo);
-router.delete("/:id/objetivos/:objetivoId",   requireRole("TUTOR"), deleteObjetivo);
+router.get("/:id/objetivos",                          getObjetivos);
+router.post("/:id/objetivos",                         requireRole("TUTOR"), createObjetivo);
+router.put("/:id/objetivos/:objetivoId/logrado",      markObjetivoLogrado); // cuidadores con canFillTracker, sin requireRole
+router.put("/:id/objetivos/:objetivoId",              requireRole("TUTOR"), updateObjetivo);
+router.delete("/:id/objetivos/:objetivoId",           requireRole("TUTOR"), deleteObjetivo);
 
 export default router;
