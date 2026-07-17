@@ -54,6 +54,9 @@ model Ninio {
   user        User?        @relation("UserNinios", fields: [userId], references: [id], onDelete: Cascade)
   medications  Medicacion[]
   consultas    Consulta[]
+  sensoryLogs  SensoryLog[]
+  hospitalizaciones Hospitalizacion[]
+  objetivos    ObjetivoTerapeutico[]
   shareToken     String?  @unique
   emergencyToken String?  @unique
   cuidadores   CuidadorNinio[] @relation("NinioCuidadores")
@@ -184,7 +187,48 @@ model Crisis {
   id          String   @id @default(uuid())
   ninioId     String
   ninio       Ninio    @relation(fields: [ninioId], references: [id], onDelete: Cascade)
-  startTime   String   
-  endTime     String   
+  startTime   String
+  endTime     String
   durationSec Int?
+}
+
+// Diario sensorial: registro puntual de un episodio de desregulación —
+// contexto donde ocurrió, estímulo involucrado y respuesta observada.
+model SensoryLog {
+  id        String   @id @default(uuid())
+  ninioId   String
+  ninio     Ninio    @relation(fields: [ninioId], references: [id], onDelete: Cascade)
+  date      String   // YYYY-MM-DD
+  time      String?  // "HH:MM"
+  context   String   // dónde/cuándo pasó
+  stimulus  String[] // auditivo, táctil, visual, vestibular, olfativo, propioceptivo, otro
+  response  String   // qué se observó
+  createdAt DateTime @default(now())
+}
+
+model Hospitalizacion {
+  id                  String   @id @default(uuid())
+  ninioId             String
+  ninio               Ninio    @relation(fields: [ninioId], references: [id], onDelete: Cascade)
+  startDate           String   // YYYY-MM-DD
+  endDate             String?  // null = internación en curso
+  motivo              String
+  hospital            String?
+  medicosInvolucrados String?
+  notas               String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model ObjetivoTerapeutico {
+  id            String    @id @default(uuid())
+  ninioId       String
+  ninio         Ninio     @relation(fields: [ninioId], references: [id], onDelete: Cascade)
+  terapiaNombre String    // referencia al nombre de terapia cargado en Ninio.terapias
+  descripcion   String
+  estado        String    @default("activo") // "activo" | "logrado" | "pausado"
+  fechaInicio   String    // YYYY-MM-DD
+  fechaLogro    String?   // YYYY-MM-DD
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
