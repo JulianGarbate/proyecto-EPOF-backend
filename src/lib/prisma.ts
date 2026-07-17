@@ -5,9 +5,11 @@ declare global {
   var prisma: PrismaClient | undefined;
 }
 
-// En serverless reutilizamos la instancia entre invocaciones calientes
+// Reutilizar la instancia entre invocaciones sobre el mismo container cálido
+// es lo que más importa en Vercel (serverless), donde NODE_ENV=production —
+// justo el caso que el chequeo anterior excluía, forzando una conexión nueva
+// a Supabase en cada request.
 const prisma = global.prisma ?? new PrismaClient();
-
-if (process.env.NODE_ENV !== "production") global.prisma = prisma;
+global.prisma = prisma;
 
 export default prisma;
