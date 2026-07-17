@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import compression from "compression";
 import routes from "./routes/index";
 import { errorHandler } from "./middlewares/errorHandler";
 
@@ -32,6 +33,7 @@ const corsOptions: cors.CorsOptions = {
 };
 
 app.use(helmet());
+app.use(compression());
 app.use(cors(corsOptions));
 app.use(express.json());
 
