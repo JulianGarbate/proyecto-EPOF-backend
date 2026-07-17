@@ -133,7 +133,11 @@ wakeUps      Int
   therapyDetail String?
   activities    String[]
   activitiesOther String?
+  activitiesNote  String?   // por qué ocurrió la actividad fuera de lo común
   attention     String
+  attentionNote String?   // por qué el nivel de atención fue ese
+
+  hydrationMl   Int?      // ml de agua consumidos en el día
 
   intercurrencias     String[]
   intercurrenciasNote String?
