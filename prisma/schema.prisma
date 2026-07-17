@@ -130,8 +130,9 @@ wakeUps      Int
   rejectedItems   String?   // qué alimentos rechazó específicamente
   managedToEat    String?   // qué logró comer
   mealNote        String?
-  bowelCount    Int      
-  bristolTypes  String[] 
+  bowelCount    Int
+  bristolTypes  String[]
+  bowelAssistance String[] // "Asistida" | "Natural" por deposición, mismo orden que bristolTypes
 
   tookAllMeds   Boolean
   missedMedIds  String[] 
