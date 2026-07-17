@@ -86,6 +86,8 @@ model Medicacion {
   efectosSubida    String?   // Qué pasa cuando se SUBE la dosis
   efectosBajada    String?   // Qué pasa cuando se BAJA la dosis
   efectosMantenida String?   // Qué pasa cuando se MANTIENE la dosis
+  stockQuantity    Int?      // unidades restantes en stock
+  stockUnit        String?   // "comprimidos", "ml", "sobres"...
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 }
@@ -98,10 +100,14 @@ model Tracker {
 
   sleep        Float
   sleepNote    String?
-wakeUps      Int      
-  sleepQuality String   
-  moods        String[] 
-  energy       String   
+  sleepStart   String?   // "HH:MM" — hora en que se durmió (opcional, complementa `sleep`)
+  sleepEnd     String?   // "HH:MM" — hora en que se despertó
+  naps         Json?     // [{start, end}] — siestas del día
+wakeUps      Int
+  wakeUpTypes  String[]  // tipos de despertar nocturno (llanto, dolor, sin motivo aparente...)
+  sleepQuality String
+  moods        String[]
+  energy       String
 
   hasCrisis      Boolean
   crisisTypes    String[]
@@ -146,7 +152,10 @@ wakeUps      Int
   intercurrencias     String[]
   intercurrenciasNote String?
 
-  achievements       String?
+  achievements          String?
+  achievementTime       String?   // "HH:MM" — a qué hora ocurrió el logro
+  achievementSpontaneous Boolean? // true = espontáneo, false = hubo estímulo previo
+  achievementStimulus   String?   // qué estímulo lo precedió (si no fue espontáneo)
   hasBehaviorIssue   Boolean
   behaviorDetail     String?
   regulation         String?

@@ -97,7 +97,8 @@ export async function updateRecord(req: AuthRequest, res: Response) {
 }
 
 const ALLOWED_RECORD_FIELDS = new Set([
-  "sleep", "wakeUps", "sleepQuality", "moods", "energy",
+  "sleep", "wakeUps", "wakeUpTypes", "sleepQuality", "moods", "energy",
+  "sleepStart", "sleepEnd", "naps",
   "hasCrisis", "crises", "crisisTypes", "otherType", "crisisSeverity",
   "requiredRescue", "requiredER", "startTime", "durationHrs", "durationMin",
   "durationSec", "triggers",
@@ -106,7 +107,7 @@ const ALLOWED_RECORD_FIELDS = new Set([
   "direccionAlteracion", "efectosObservados", "alteraciones",
   "hadTherapy", "therapyTypes", "therapyDetail", "therapyNotes", "activities", "activitiesOther", "activitiesNote",
   "intercurrencias", "intercurrenciasNote",
-  "attention", "attentionNote", "achievements", "hydrationMl",
+  "attention", "attentionNote", "achievements", "achievementTime", "achievementSpontaneous", "achievementStimulus", "hydrationMl",
   "hasBehaviorIssue", "behaviorDetail", "regulation", "notes",
 ]);
 

@@ -28,7 +28,7 @@ export async function createMedication(req: AuthRequest, res: Response) {
   const ninio = await ownedNinio(id, req.userId!);
   if (!ninio) { res.status(404).json({ error: "Paciente no encontrado" }); return; }
 
-  const { name, dose, horarios, dias, efectosSubida, efectosBajada, efectosMantenida } = req.body;
+  const { name, dose, horarios, dias, efectosSubida, efectosBajada, efectosMantenida, stockQuantity, stockUnit } = req.body;
   if (!name || !dose) { res.status(400).json({ error: "Nombre y dosis son requeridos" }); return; }
 
   const med = await prisma.medicacion.create({
@@ -39,6 +39,8 @@ export async function createMedication(req: AuthRequest, res: Response) {
       efectosSubida:    efectosSubida    ?? null,
       efectosBajada:    efectosBajada    ?? null,
       efectosMantenida: efectosMantenida ?? null,
+      stockQuantity:    stockQuantity != null ? parseInt(String(stockQuantity)) : null,
+      stockUnit:        stockUnit ?? null,
     },
   });
   res.status(201).json({ medication: med });
@@ -54,7 +56,7 @@ export async function updateMedication(req: AuthRequest, res: Response) {
   const med = await prisma.medicacion.findFirst({ where: { id: medId, ninioId: id } });
   if (!med) { res.status(404).json({ error: "Medicamento no encontrado" }); return; }
 
-  const { name, dose, horarios, dias, efectosSubida, efectosBajada, efectosMantenida } = req.body;
+  const { name, dose, horarios, dias, efectosSubida, efectosBajada, efectosMantenida, stockQuantity, stockUnit } = req.body;
   const updated = await prisma.medicacion.update({
     where: { id: medId },
     data: {
@@ -65,6 +67,8 @@ export async function updateMedication(req: AuthRequest, res: Response) {
       ...(efectosSubida    !== undefined && { efectosSubida }),
       ...(efectosBajada    !== undefined && { efectosBajada }),
       ...(efectosMantenida !== undefined && { efectosMantenida }),
+      ...(stockQuantity    !== undefined && { stockQuantity: stockQuantity != null ? parseInt(String(stockQuantity)) : null }),
+      ...(stockUnit        !== undefined && { stockUnit }),
     },
   });
   res.json({ medication: updated });
