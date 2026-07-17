@@ -57,8 +57,9 @@ model Ninio {
   sensoryLogs  SensoryLog[]
   hospitalizaciones Hospitalizacion[]
   objetivos    ObjetivoTerapeutico[]
-  shareToken     String?  @unique
-  emergencyToken String?  @unique
+  shareToken          String?   @unique
+  shareTokenExpiresAt DateTime? // el link de historial vence a los 30 días — la ficha de emergencia no expira, es de uso permanente
+  emergencyToken      String?   @unique
   cuidadores   CuidadorNinio[] @relation("NinioCuidadores")
 }
 
