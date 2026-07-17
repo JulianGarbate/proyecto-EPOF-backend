@@ -42,14 +42,18 @@ async function deductStockForDay(ninioId: string, dateStr: string, tookAllMeds: 
   if (!tookAllMeds) return;
   const dow = weekdayOf(dateStr);
   const meds = await prisma.medicacion.findMany({ where: { ninioId, stockQuantity: { not: null } } });
-  for (const med of meds) {
-    if (missedMedIds.includes(med.id)) continue;
-    if (med.dias.length > 0 && !med.dias.includes(dow)) continue;
+
+  const updates = meds.flatMap((med) => {
+    if (missedMedIds.includes(med.id)) return [];
+    if (med.dias.length > 0 && !med.dias.includes(dow)) return [];
     const dosesToday = med.horarios ? med.horarios.split(",").map((h) => h.trim()).filter(Boolean).length : 0;
-    if (dosesToday === 0) continue;
+    if (dosesToday === 0) return [];
     const next = Math.max(0, (med.stockQuantity ?? 0) - dosesToday);
-    await prisma.medicacion.update({ where: { id: med.id }, data: { stockQuantity: next } });
-  }
+    return [prisma.medicacion.update({ where: { id: med.id }, data: { stockQuantity: next } })];
+  });
+
+  // Un solo viaje a la base en vez de N updates secuenciales.
+  if (updates.length > 0) await prisma.$transaction(updates);
 }
 
 // POST /api/records

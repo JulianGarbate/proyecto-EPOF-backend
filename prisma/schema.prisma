@@ -93,6 +93,8 @@ model Medicacion {
   stockUnit        String?   // "comprimidos", "ml", "sobres"...
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+
+  @@index([ninioId])
 }
 
 model Tracker {
@@ -182,6 +184,8 @@ model Consulta {
   nextDate    String?  // próxima cita YYYY-MM-DD
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([ninioId])
 }
 
 model Crisis {
@@ -191,6 +195,8 @@ model Crisis {
   startTime   String
   endTime     String
   durationSec Int?
+
+  @@index([ninioId])
 }
 
 // Diario sensorial: registro puntual de un episodio de desregulación —
@@ -206,6 +212,8 @@ model SensoryLog {
   stimulusDetail String? // qué fue específicamente el estímulo (ej: "sirena de ambulancia")
   response  String   // qué se observó
   createdAt DateTime @default(now())
+
+  @@index([ninioId])
 }
 
 model Hospitalizacion {
@@ -220,6 +228,8 @@ model Hospitalizacion {
   notas               String?
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
+
+  @@index([ninioId])
 }
 
 model ObjetivoTerapeutico {
@@ -233,4 +243,6 @@ model ObjetivoTerapeutico {
   fechaLogro    String?   // YYYY-MM-DD
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  @@index([ninioId])
 }
