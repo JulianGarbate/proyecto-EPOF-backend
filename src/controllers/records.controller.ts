@@ -29,6 +29,29 @@ export async function getRecords(req: AuthRequest, res: Response) {
   res.json({ records });
 }
 
+// Lunes=0…Domingo=6, mismo criterio que "dias" en Medicacion y useMedReminder.
+function weekdayOf(dateStr: string): number {
+  const jsDay = new Date(dateStr + "T12:00:00").getDay(); // 0=Dom
+  return jsDay === 0 ? 6 : jsDay - 1;
+}
+
+// Descuenta 1 unidad de stock por horario programado ese día, para cada
+// medicamento que se tomó completo (no está en missedMedIds). Solo corre una
+// vez por día — se llama exclusivamente cuando el registro se crea por primera vez.
+async function deductStockForDay(ninioId: string, dateStr: string, tookAllMeds: boolean, missedMedIds: string[]) {
+  if (!tookAllMeds) return;
+  const dow = weekdayOf(dateStr);
+  const meds = await prisma.medicacion.findMany({ where: { ninioId, stockQuantity: { not: null } } });
+  for (const med of meds) {
+    if (missedMedIds.includes(med.id)) continue;
+    if (med.dias.length > 0 && !med.dias.includes(dow)) continue;
+    const dosesToday = med.horarios ? med.horarios.split(",").map((h) => h.trim()).filter(Boolean).length : 0;
+    if (dosesToday === 0) continue;
+    const next = Math.max(0, (med.stockQuantity ?? 0) - dosesToday);
+    await prisma.medicacion.update({ where: { id: med.id }, data: { stockQuantity: next } });
+  }
+}
+
 // POST /api/records
 export async function createRecord(req: AuthRequest, res: Response) {
   const { ninioId } = req.body;
@@ -40,6 +63,8 @@ export async function createRecord(req: AuthRequest, res: Response) {
   const { date, ...rest } = req.body;
   const dateStr: string = date ?? new Date().toISOString().split("T")[0];
 
+  const existing = await prisma.tracker.findUnique({ where: { ninioId_date: { ninioId, date: dateStr } } });
+
   // Upsert: si ya existe para esa fecha lo actualiza
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const record = await (prisma.tracker.upsert as any)({
@@ -47,6 +72,17 @@ export async function createRecord(req: AuthRequest, res: Response) {
     create: { ninioId, date: dateStr, ...sanitize(rest) },
     update: { ...sanitize(rest) },
   });
+
+  // Solo descontar stock la primera vez que se crea el registro del día —
+  // evita descuentos duplicados si el usuario edita la jornada después.
+  if (!existing) {
+    await deductStockForDay(
+      ninioId, dateStr,
+      Boolean(rest.tookAllMeds),
+      Array.isArray(rest.missedMedIds) ? rest.missedMedIds : []
+    );
+  }
+
   res.status(201).json({ record });
 }
 
