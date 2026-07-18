@@ -8,11 +8,12 @@ async function ownedNinio(ninioId: string, userId: string) {
 }
 
 // GET /api/patients/:id/objetivos
-// Lectura abierta a cuidadores con canFillTracker/canSeeHistory — el tracker necesita
-// ver los objetivos activos para poder marcarlos como cumplidos al cargar una terapia.
+// Requiere el permiso dedicado canSeeObjectives — sin él, ni el tracker (que
+// usa este mismo endpoint para mostrar los objetivos de la terapia del día)
+// va a poder mostrarlos.
 export async function getObjetivos(req: AuthRequest, res: Response) {
   const id = req.params.id as string;
-  const ninio = await accessibleNinio(id, req.userId!, ["canFillTracker", "canSeeHistory"]);
+  const ninio = await accessibleNinio(id, req.userId!, ["canSeeObjectives"]);
   if (!ninio) { res.status(404).json({ error: "Paciente no encontrado" }); return; }
 
   const objetivos = await prisma.objetivoTerapeutico.findMany({
@@ -69,12 +70,12 @@ export async function updateObjetivo(req: AuthRequest, res: Response) {
 }
 
 // PUT /api/patients/:id/objetivos/:objetivoId/logrado
-// Acción rápida de un solo campo — accesible a cuidadores con canFillTracker
+// Acción rápida de un solo campo — accesible a cuidadores con canSeeObjectives
 // (se dispara desde el tracker al marcar la terapia correspondiente).
 export async function markObjetivoLogrado(req: AuthRequest, res: Response) {
   const id         = req.params.id         as string;
   const objetivoId = req.params.objetivoId as string;
-  const ninio = await accessibleNinio(id, req.userId!, ["canFillTracker"]);
+  const ninio = await accessibleNinio(id, req.userId!, ["canSeeObjectives"]);
   if (!ninio) { res.status(404).json({ error: "Paciente no encontrado" }); return; }
 
   const existing = await prisma.objetivoTerapeutico.findFirst({ where: { id: objetivoId, ninioId: id } });

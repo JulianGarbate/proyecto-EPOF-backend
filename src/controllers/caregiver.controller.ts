@@ -8,6 +8,8 @@ export interface CuidadorPermissions {
   canSeeHistory: boolean;
   canSeeMeds: boolean;
   canSeeCrisisProtocol: boolean;
+  canSeeSensoryDiary: boolean;
+  canSeeObjectives: boolean;
 }
 
 const DEFAULT_PERMISSIONS: CuidadorPermissions = {
@@ -15,6 +17,8 @@ const DEFAULT_PERMISSIONS: CuidadorPermissions = {
   canSeeHistory: false,
   canSeeMeds: false,
   canSeeCrisisProtocol: false,
+  canSeeSensoryDiary: false,
+  canSeeObjectives: false,
 };
 
 function asJson(v: unknown) { return v as never; }

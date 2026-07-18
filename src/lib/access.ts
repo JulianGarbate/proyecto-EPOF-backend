@@ -4,7 +4,14 @@ export type CuidadorPermission =
   | "canFillTracker"
   | "canSeeHistory"
   | "canSeeMeds"
-  | "canSeeCrisisProtocol";
+  | "canSeeCrisisProtocol"
+  | "canSeeSensoryDiary"
+  | "canSeeObjectives";
+// Nota: Hospitalizacion/Consulta NUNCA usan accessibleNinio — sus controllers
+// llaman a un `ownedNinio` local que solo chequea Ninio.userId, sin consultar
+// CuidadorNinio.permissions en absoluto. Así, ningún cuidador puede acceder a
+// esas dos secciones sin importar qué permisos tenga — no existe ni la
+// posibilidad de otorgárselo. No agregar un flag de permiso para ellas.
 
 /**
  * Returns the niño if the user may access it, otherwise null.

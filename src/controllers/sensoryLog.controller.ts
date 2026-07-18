@@ -6,7 +6,7 @@ import { accessibleNinio } from "../lib/access";
 // GET /api/patients/:id/sensory-logs
 export async function getSensoryLogs(req: AuthRequest, res: Response) {
   const id = req.params.id as string;
-  const ninio = await accessibleNinio(id, req.userId!, ["canSeeHistory", "canFillTracker"]);
+  const ninio = await accessibleNinio(id, req.userId!, ["canSeeSensoryDiary"]);
   if (!ninio) { res.status(404).json({ error: "Paciente no encontrado" }); return; }
 
   const logs = await prisma.sensoryLog.findMany({
@@ -20,7 +20,7 @@ export async function getSensoryLogs(req: AuthRequest, res: Response) {
 // POST /api/patients/:id/sensory-logs
 export async function createSensoryLog(req: AuthRequest, res: Response) {
   const id = req.params.id as string;
-  const ninio = await accessibleNinio(id, req.userId!, ["canFillTracker"]);
+  const ninio = await accessibleNinio(id, req.userId!, ["canSeeSensoryDiary"]);
   if (!ninio) { res.status(404).json({ error: "Paciente no encontrado" }); return; }
 
   const { date, time, context, stimulus, stimulusDetail, response } = req.body;
@@ -45,7 +45,7 @@ export async function createSensoryLog(req: AuthRequest, res: Response) {
 export async function deleteSensoryLog(req: AuthRequest, res: Response) {
   const id    = req.params.id    as string;
   const logId = req.params.logId as string;
-  const ninio = await accessibleNinio(id, req.userId!, ["canFillTracker"]);
+  const ninio = await accessibleNinio(id, req.userId!, ["canSeeSensoryDiary"]);
   if (!ninio) { res.status(404).json({ error: "Paciente no encontrado" }); return; }
 
   const existing = await prisma.sensoryLog.findFirst({ where: { id: logId, ninioId: id } });
